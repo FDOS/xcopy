@@ -27,3 +27,7 @@ version 1.4
 version 1.4a
 ------------
 - added xcopy.htm Help file, based on xcopy.txt (Stephan Peters)
+
+version 1.5
+-----------
+- improved Open Watcom support (utilizes pieces from TCC2WAT), shared.inc

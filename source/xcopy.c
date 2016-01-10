@@ -6,6 +6,7 @@
 /* compatible compilers:                                                   */
 /* Borland C++ (tm) v3.0 or higher                                         */
 /* [ Support for Turbo C 2.01 and OpenWatcom added 2005 by Eric Auer... ]  */
+/* [ Prior to v1.5 use TCC2WAT with OpenWatcom, pieces included in v1.5 ]  */
 /*-------------------------------------------------------------------------*/
 /* (C)opyright 2001-2003 by Rene Ableidinger (rene.ableidinger@gmx.at)     */
 /* Bugfixes and linking to Kitten translation library: Eric Auer 2005      */
@@ -41,7 +42,7 @@ nl_catd cat;            /* message catalog, must be before shared.inc */
 			/* dir.h sets MAXPATH to 80 for DOS */
 #define MYMAXPATH 130	/* _fullname wants at least 128 bytes */
 
-#ifdef __TURBOC__
+#if defined(__TURBOC__) && !defined(__BORLANDC__)
 #define _splitpath fnsplit
 void _fullpath(char * truename, char * rawname, unsigned int namelen)
 {
@@ -129,10 +130,10 @@ void xcopy_file(const char *src_filename,
 /*-------------------------------------------------------------------------*/
 /* MAIN-PROGRAM                                                            */
 /*-------------------------------------------------------------------------*/
-int main(int argc, char **argv) {
-  char fileargc,
-       *fileargv[255],
-       switchargc,
+int main(int argc, const char **argv) {
+  int fileargc, 
+	  switchargc;
+  char *fileargv[255],
        *switchargv[255],
        env_prompt[MAXSWITCH],
        tmp_switch[MAXSWITCH] = "",
@@ -141,9 +142,8 @@ int main(int argc, char **argv) {
        dest_pathname[MYMAXPATH] = "",
        dest_filename[MAXFILE + MAXEXT] = "",
        *ptr,
-       i,
        ch;
-  int length;
+  int i, length;
   THEDATE dt;
 #ifdef __WATCOMC__
   struct dostime_t tm;
@@ -401,7 +401,7 @@ int main(int argc, char **argv) {
 /* SUB-PROGRAMS                                                            */
 /*-------------------------------------------------------------------------*/
 void print_help(void) {
-  printf("XCOPY v1.4 - Copyright 2001-2003 by Rene Ableidinger (patches 2005: Eric Auer)\n");
+  printf("XCOPY v1.5 - Copyright 2001-2003 by Rene Ableidinger (patches 2005: Eric Auer)\n");
   	/* VERSION! */
   printf("%s\n\n", catgets(cat, 2, 1, "Copies files and directory trees."));
   printf("%s\n\n", catgets(cat, 2, 2, "XCOPY source [destination] [/switches]"));
@@ -491,9 +491,9 @@ int cyclic_path(const char *src_pathname,
 /* -1   directory was not created due to error                             */
 /*-------------------------------------------------------------------------*/
 int make_dir(char *path) {
+  int i;
   char tmp_path1[MAXPATH],
        tmp_path2[MAXPATH],
-       i,
        length,
        mkdir_error;
 

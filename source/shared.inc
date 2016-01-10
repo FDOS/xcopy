@@ -9,11 +9,97 @@
 #define MAXDIR   _MAX_DIR   /* 66 */
 #define MAXFILE  _MAX_FNAME /*  9 */
 #define MAXEXT   _MAX_EXT   /*  5 */
+
+/* following are defined in <dos.h> for Borland compilers, so alias to OW defines */
+/* no alternate for _A_NORMAL */
+#define FA_RDONLY _A_RDONLY
+#define FA_HIDDEN _A_HIDDEN
+#define FA_SYSTEM _A_SYSTEM
+#define FA_LABEL  _A_VOLID
+#define FA_DIREC  _A_SUBDIR
+#define FA_ARCH   _A_ARCH
+
+struct ffblk {
+        unsigned short cr_time; /* time of file creation      */
+        unsigned short cr_date; /* date of file creation      */
+        unsigned short ac_time; /* time of last file access   */
+        unsigned short ac_date; /* date of last file access   */
+        unsigned short lfnax;   /* DOS LFN search handle      */
+        unsigned char  lfnsup;  /* DOS LFN support status     */
+        char ff_reserved[10];   /* reserved for use by DOS    */
+        char ff_attrib;         /* attribute byte for file    */
+        unsigned short ff_ftime;/* time of last write to file */
+        unsigned short ff_date; /* date of last write to file */
+        unsigned long  ff_fsize;/* length of file in bytes    */
+#if defined(__OS2__) || defined(__NT__) || defined(__WATCOM_LFN__)
+        char ff_name[256];      /* null-terminated filename   */
+#else
+        char ff_name[13];       /* null-terminated filename   */
+#endif
+};
+
+int findfirst(char *pathname, struct ffblk *fblock, int attrib) {
+  return((int)_dos_findfirst(pathname,( unsigned )attrib,(struct find_t *)fblock));
+}
+int findnext(struct ffblk *fblock) {
+  return((int)_dos_findnext((struct find_t *)fblock));
+}
+int findclose(struct ffblk *fblock) {
+    return((int)_dos_findclose((struct find_t *)fblock));
+}
+
+int getverify(void) {
+  return(bdos(0x54,0,0) & 0xff);
+}
+void setverify(int value) {
+  bdos( 0x2e,0,value);
+}
+
+
+struct ftime {
+    unsigned ft_tsec  : 5;  /* Two seconds */
+    unsigned ft_min   : 6;  /* Minutes */
+    unsigned ft_hour  : 5;  /* Hours */
+    unsigned ft_day   : 5;  /* Days */
+    unsigned ft_month : 4;  /* Months */
+    unsigned ft_year  : 7;  /* Year - 1980 */
+};
+/* bc_time only used to allow get/set ftime to work, ie don't manually set */
+union borftime {
+    struct {
+        unsigned time;
+        unsigned date;
+    } msc_time;
+    struct ftime bc_time;
+};
+int getftime(int handle, struct ftime *ftimep)
+{
+  union borftime ftm;
+  
+  if( _dos_getftime(handle,
+                    (unsigned *)&ftm.msc_time.date,
+                    (unsigned *)&ftm.msc_time.time 
+					) == 0 )
+  {
+    *ftimep = ftm.bc_time;
+	return 0;
+  } /* else */
+  return -1;
+}
+int setftime(int handle, struct ftime *ftimep)
+{
+  union borftime ftm;
+  ftm.bc_time = *ftimep;
+  return((_dos_setftime(handle,ftm.msc_time.date,ftm.msc_time.time) == 0) ? 0 : -1);
+}
+
+
 #else
 #include <dir.h>
 #endif
 
 #ifdef __WATCOMC__ /* "dosdate_t" instead of Borland style "date" ... */
+#include <time.h>
 #define THEDATE struct dosdate_t /* in dos.h */
 #define da_year year
 #define da_mon month
@@ -22,6 +108,21 @@
 #define ti_minute minute
 #define ti_sec second
 #define ti_hund hsecond
+
+time_t dostounix(THEDATE *date, struct dostime_t *time)
+{
+    struct tm unixtime;
+
+    unixtime.tm_sec = time->ti_sec;
+    unixtime.tm_min = time->ti_minute;
+    unixtime.tm_hour = time->ti_hour;
+    unixtime.tm_mday = date->da_day;
+    unixtime.tm_mon = date->da_mon - 1;
+    unixtime.tm_year = date->da_year - 1900;
+    unixtime.tm_isdst = 0;
+
+    return(mktime(&unixtime));
+}
 #else
 #define THEDATE struct date
 #endif
@@ -52,6 +153,69 @@
   #define R_OK 4  /* readable */
   #define W_OK 2  /* writeable */
   #define X_OK 1  /* executable */
+#endif
+
+
+#ifdef __WATCOMC__
+/* WARNING this will override default implementation and signature */
+#define _chmod _dos_chmod
+
+/*-------------------------------------------------------------------------*/
+/* Works like function chmod/_chmod from Borland                           */
+/* if mode is 0 then returns current file attributes (readonly/hidden/...) */
+/* if mode is 1 then sets current file attributes                          */
+/* returns -1 on error, otherwise returns current file attributes          */
+/*-------------------------------------------------------------------------*/
+#include <stdarg.h>
+int _dos_chmod(const char *path, int mode, ... /* int attrib */)
+{
+  unsigned m_attrib;
+
+  if (mode) {
+    va_list valist;
+    va_start(valist, mode);
+    m_attrib = va_arg(valist, unsigned);
+    va_end(valist);
+
+    if (_dos_setfileattr(path, m_attrib)) {
+	  /* set errno properly */
+	  return -1;
+	}
+  } else {
+    if (_dos_getfileattr(path, &m_attrib)) {
+	  /* set errno properly */
+	  return -1;
+	}
+  }
+  return m_attrib;
+}
+#endif
+
+
+#ifdef __WATCOMC__
+/*-------------------------------------------------------------------------*/
+/* Borland compatible get disk free space function.                        */
+/*-------------------------------------------------------------------------*/
+struct dfree {
+    unsigned df_avail;  /* Available clusters */
+    unsigned df_total;  /* Total clusters */
+    unsigned df_bsec;   /* Bytes per sector */
+    unsigned df_sclus;  /* Sectors per cluster */
+};
+
+void getdfree(unsigned char drive, struct dfree *dtable)
+{
+    struct diskfree_t disk;
+    
+    if(_dos_getdiskfree(drive, &disk) != 0) {
+        dtable->df_sclus = 0xFFFF;
+        return;
+    }
+    dtable->df_avail = disk.avail_clusters;
+    dtable->df_total = disk.total_clusters;
+    dtable->df_bsec = disk.bytes_per_sector;
+    dtable->df_sclus = disk.sectors_per_cluster;
+}
 #endif
 
 
@@ -188,14 +352,14 @@ int datevalid(THEDATE * dt) {
 /*-------------------------------------------------------------------------*/
 /* Splits the program arguments into file and switch arguments.            */
 /*-------------------------------------------------------------------------*/
-void classify_args(const char argc,
+void classify_args(const int argc,
                    const char **argv,
-                   char *fileargc,
+                   int *fileargc,
                    char **fileargv,
-                   char *switchargc,
+                   int *switchargc,
                    char **switchargv) {
-  char i,
-       *argptr;
+  int i;
+  char *argptr;
 
 
   *fileargc = 0;
@@ -239,9 +403,8 @@ char *cat_separator(char *path) {
 /* trailing directory separator.                                           */
 /*-------------------------------------------------------------------------*/
 int dir_exists(const char *path) {
-  char tmp_path[MAXPATH],
-       i;
-  int attrib;
+  char tmp_path[MAXPATH];
+  int i, attrib;
 
 
   strmcpy(tmp_path, path, sizeof(tmp_path));

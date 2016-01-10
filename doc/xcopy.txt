@@ -69,8 +69,9 @@ Compiling the source code is possible with the following compilers:
 - Borland C++ (tm) 3.0 or higher
 - Borland Turbo C++ (tm) 3.0 or higher
 Version 1.2 and newer can also be compiled with the now freeware
-Borland Turbo C 2.01 compiler :-)
-
+- Borland Turbo C 2.01 compiler :-)
+Version 1.5 and newer
+- Open Watcom C/C++ 1.9/2.0pre (includes portions of tcc2wat)
 
 Contacting the author
 ---------------------
