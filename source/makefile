@@ -7,7 +7,7 @@
 # if yu use upx: --8086 for 8086 compatibility, --best for smallest
 
 # UPX=-rem
-UPX=upx --8086
+UPX=upx --8086 --best
 
 ############# WATCOM ########################
 # CC=wcl

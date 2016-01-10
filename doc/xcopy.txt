@@ -68,6 +68,8 @@ Compiling the source code
 Compiling the source code is possible with the following compilers:
 - Borland C++ (tm) 3.0 or higher
 - Borland Turbo C++ (tm) 3.0 or higher
+Version 1.2 and newer can also be compiled with the now freeware
+Borland Turbo C 2.01 compiler :-)
 
 
 Contacting the author
@@ -90,4 +92,4 @@ General Public License for more details.
 
 You should have received a copy of the GNU General Public License along
 with this program; if not, write to the Free Software Foundation, Inc.,
-59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+51 Franklin St, Fifth Floor, Boston, MA 02110, USA
