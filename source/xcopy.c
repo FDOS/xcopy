@@ -101,8 +101,8 @@ char switch_archive = 0,
      bak_verify = 0,
      dest_drive;
 long int switch_date = 0;
-int file_counter = 0,
-    file_found = 0;
+long file_counter = 0,
+int file_found = 0;
 
 
 /*-------------------------------------------------------------------------*/
@@ -456,7 +456,7 @@ void exit_fn(void) {
     setverify(bak_verify);
   }
 
-  printf("%d %s\n", file_counter, catgets(cat, 1, 19, "file(s) copied"));
+  printf("%ld %s\n", file_counter, catgets(cat, 1, 19, "file(s) copied"));
   catclose(cat);
 }
 
