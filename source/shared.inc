@@ -76,7 +76,8 @@ int getftime(int handle, struct ftime *ftimep)
 {
   union borftime ftm;
   
-  if( _dos_getftime(handle,
+  /* Note: fileno() returns POSIX compatible handle, this may or may not match DOS handle, so convert with os_handle() */
+  if( _dos_getftime(_os_handle(handle),
                     (unsigned *)&ftm.msc_time.date,
                     (unsigned *)&ftm.msc_time.time 
 					) == 0 )
@@ -90,7 +91,8 @@ int setftime(int handle, struct ftime *ftimep)
 {
   union borftime ftm;
   ftm.bc_time = *ftimep;
-  return((_dos_setftime(handle,ftm.msc_time.date,ftm.msc_time.time) == 0) ? 0 : -1);
+  /* Note: fileno() returns POSIX compatible handle, this may or may not match DOS handle, so convert with os_handle() */
+  return((_dos_setftime(_os_handle(handle),ftm.msc_time.date,ftm.msc_time.time) == 0) ? 0 : -1);
 }
 
 
