@@ -501,7 +501,7 @@ void copy_file(const char *src_filename,
                const char return_on_error) {
   FILE *src_file,
        *dest_file;
-  char buffer[16384];
+  static char buffer[16384];  /* don't put buffer on stack! */
   unsigned int buffersize;
   int readsize,
       fileattrib;
