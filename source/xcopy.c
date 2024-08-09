@@ -753,10 +753,7 @@ void xcopy_file(const char *src_filename,
 
   /* get amount of free disk space in destination drive (in clusters not bytes) */
   getdfree(dest_drive, &disktable);
-  cluster_size = (unsigned long)disktable.df_bsec * disktable.df_sclus * disktable.df_avail;
-  printf("Freespace = %uL bytes\n", cluster_size);
   cluster_size = (unsigned long)disktable.df_bsec * disktable.df_sclus;
-  printf("Cluster size=%uL bytes\n", cluster_size);
 
   if (dest_file_exists) {
     if (switch_date) {
