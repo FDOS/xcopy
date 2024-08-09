@@ -31,3 +31,9 @@ version 1.4a
 version 1.5
 -----------
 - improved Open Watcom support (utilizes pieces from TCC2WAT), shared.inc
+
+version 1.6 (2024-08-09)
+------------------------
+- fix bug causing timestamps to not always be set correctly (GitHub bug# 8)
+- fix bug causing stack corruption on Open Watcom builds (GitHub bug# 7)
+- improve free disk space calculation (fix GitHub bug# 10)
