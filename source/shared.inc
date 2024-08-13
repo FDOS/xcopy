@@ -386,6 +386,35 @@ int datevalid(THEDATE * dt) {
 
 
 /*-------------------------------------------------------------------------*/
+/* Copies argument into buffer until new option or end of string found.    */
+/*-------------------------------------------------------------------------*/
+static char option_buffer[1024];
+static char * get_option(const char **next_argptr, unsigned *count)
+{
+  unsigned int i, tmp_maxlen;
+  const char *src = *next_argptr+1; /* +1 skip past option char (/ or -) */
+  char *dest = option_buffer+*count;
+  int expecting_date = 0; /* flag indicating / may be part of option */
+ 
+  tmp_maxlen = sizeof(option_buffer) - (*count) - 1;
+  i = 0;
+  while ((src[i] != '\0') &&
+         (i < tmp_maxlen) &&
+		 ((!expecting_date && ((src[i] != '-') && (src[i] != '/'))) || expecting_date)) 
+  {
+    dest[i] = src[i];
+	expecting_date |= src[i] == ':';  /* currently only /D:<date> option */
+    i++;
+  }
+  dest[i] = '\0';
+  if (i >= tmp_maxlen) *next_argptr = dest+i; /* ensure points to '\0' */
+  else *next_argptr = src+i;
+  *count += i + 1;
+  return dest;
+}
+
+
+/*-------------------------------------------------------------------------*/
 /* Splits the program arguments into file and switch arguments.            */
 /*-------------------------------------------------------------------------*/
 void classify_args(const int argc,
@@ -396,6 +425,8 @@ void classify_args(const int argc,
                    char **switchargv) {
   int i;
   char *argptr;
+  unsigned count = 0;
+  const char *next_argptr;
 
 
   *fileargc = 0;
@@ -404,8 +435,13 @@ void classify_args(const int argc,
     argptr = (char *)argv[i];
     if (argptr[0] == '/' || argptr[0] == '-') {
       /* first character of parameter is '/' or '-' -> switch argument */
-      switchargv[*switchargc] = argptr + 1;
-      *switchargc = *switchargc + 1;
+      //switchargv[*switchargc] = argptr + 1;
+ 	  next_argptr = argptr;
+	  do {
+        switchargv[*switchargc] = get_option(&next_argptr, &count);
+		/* printf("switcharg[%i]=|%s|\n", *switchargc, switchargv[*switchargc]); */
+        *switchargc = *switchargc + 1;
+	  } while (*next_argptr != '\0');  
     }
     else {
       /* file argument */
