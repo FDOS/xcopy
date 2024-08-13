@@ -747,20 +747,22 @@ void xcopy_file(const char *src_filename,
   getdfree(dest_drive, &disktable);
   cluster_size = (unsigned long)disktable.df_bsec * disktable.df_sclus;
 
+
+  /* only copy files newer than requested date */
+  /* -1 =if exists then only copy newer, 0=copy regardless of date, >0 date to compare if newer */
+  if (switch_date > 0) { 
+    /* check, that only files changed on or after the specified date */
+    /* are copied                                                    */
+    if (src_statbuf.st_mtime < switch_date) {
+      return;
+    }
+  }
+
   if (dest_file_exists) {
-    if (switch_date) {
-      if (switch_date < 0) {
-        /* check, that only newer files are copied */
-        if (src_statbuf.st_mtime <= dest_statbuf.st_mtime) {
-          return;
-        }
-      }
-      else {
-        /* check, that only files changed on or after the specified date */
-        /* are copied                                                    */
-        if (src_statbuf.st_mtime < switch_date) {
-          return;
-        }
+    if (switch_date < 0) {
+      /* check, that only newer files are copied */
+      if (src_statbuf.st_mtime <= dest_statbuf.st_mtime) {
+        return;
       }
     }
 
