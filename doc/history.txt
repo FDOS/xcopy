@@ -37,3 +37,10 @@ version 1.6 (2024-08-09)
 - fix bug causing timestamps to not always be set correctly (GitHub bug# 8)
 - fix bug causing stack corruption on Open Watcom builds (GitHub bug# 7)
 - improve free disk space calculation (fix GitHub bug# 10)
+
+version 1.7 (2024-08-13)
+------------------------
+- really fix timestamp bug (hopefully), move updating until after copy
+- fix sourceforge bug# 178, allow switches specified without spaces between them
+- fix /D:<date> to work skip older files than date even if no file exists at destination
+
