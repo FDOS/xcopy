@@ -145,11 +145,7 @@ int main(int argc, const char **argv) {
        ch;
   int i, length;
   THEDATE dt;
-#ifdef __WATCOMC__
-  struct dostime_t tm;
-#else
-  struct time tm;
-#endif
+  THETIME tm;
 
   cat = catopen ("xcopy", 0);	/* initialize kitten */
 
@@ -203,13 +199,9 @@ int main(int argc, const char **argv) {
         catclose(cat);
         exit(4);
       }
-#ifdef __WATCOMC__
-      memset((void *)&tm, 0, sizeof(struct dostime_t));
-      /* tm.tm_hour = 0; tm.tm_min = 0; tm.tm_sec = 0; tm.tm_hund = 0; */
-#else
-      memset((void *)&tm, 0, sizeof(struct time));
-      /* tm.ti_hour = 0; tm.ti_min = 0; tm.ti_sec = 0; tm.ti_hund = 0; */
-#endif
+      memset((void *)&tm, 0, sizeof(THETIME));
+      /* tm.tm_hour = 0; tm.tm_min = 0; tm.tm_sec = 0; tm.tm_hund = 0; -- __WATCOM__ */
+      /* tm.ti_hour = 0; tm.ti_min = 0; tm.ti_sec = 0; tm.ti_hund = 0; -- all others */
       switch_date = dostounix(&dt, &tm);
     }
     else if (strcmp(tmp_switch, "E") == 0)

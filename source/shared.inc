@@ -142,6 +142,7 @@ int os_setftime(const char *src_filename, const char *dest_filename)
 #define ti_minute minute
 #define ti_sec second
 #define ti_hund hsecond
+#define THETIME struct dostime_t
 
 time_t dostounix(THEDATE *date, struct dostime_t *time)
 {
@@ -159,6 +160,7 @@ time_t dostounix(THEDATE *date, struct dostime_t *time)
 }
 #else
 #define THEDATE struct date
+#define THETIME struct time
 #endif
 
 /*-------------------------------------------------------------------------*/
