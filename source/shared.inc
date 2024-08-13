@@ -97,6 +97,7 @@ int setftime(int handle, struct ftime *ftimep)
   ftm.bc_time = *ftimep;
   /* Note: fileno() returns POSIX compatible handle, this may or may not match DOS handle, so convert with os_handle() */
   return((_dos_setftime(_os_handle(handle),ftm.msc_time.date,ftm.msc_time.time) == 0) ? 0 : -1);
+}
 
 int os_setftime(const char *src_filename, const char *dest_filename)
 {
