@@ -19,6 +19,10 @@
 #define FA_DIREC  _A_SUBDIR
 #define FA_ARCH   _A_ARCH
 
+/* following are defined in fcntl.h (here to avoid other conflicts) */
+#define O_RDONLY 0
+#define O_RDWR   2
+
 struct ffblk {
         unsigned short cr_time; /* time of file creation      */
         unsigned short cr_date; /* date of file creation      */
@@ -93,11 +97,39 @@ int setftime(int handle, struct ftime *ftimep)
   ftm.bc_time = *ftimep;
   /* Note: fileno() returns POSIX compatible handle, this may or may not match DOS handle, so convert with os_handle() */
   return((_dos_setftime(_os_handle(handle),ftm.msc_time.date,ftm.msc_time.time) == 0) ? 0 : -1);
+
+int os_setftime(const char *src_filename, const char *dest_filename)
+{
+  int handle;
+  unsigned date, time;
+  int ret;
+  if ((ret = _dos_open(src_filename, O_RDONLY, &handle)) != 0) return ret;
+  if ((ret = _dos_getftime(handle, &date, &time)) != 0) return ret;
+  _dos_close(handle);
+  if ((ret = _dos_open(dest_filename, O_RDWR, &handle)) != 0) return ret;
+  if ((ret = _dos_setftime(handle, date, time)) != 0) return ret;
+  _dos_close(handle);
+  return 0;
 }
 
 
 #else
 #include <dir.h>
+
+/* copy file timestamp */
+int os_setftime(const char *src_filename, const char *dest_filename)
+{
+  FILE *f;
+  struct ftime filetime;
+  if ((f = fopen(src_filename, "r")) == NULL) return 1;
+  if (getftime(fileno(f), &filetime) != 0) return 1;
+  fclose(f);
+  if ((f = fopen(dest_filename, "w")) == NULL) return 1;
+  if (setftime(fileno(f), &filetime) != 0) return 1;
+  fclose(f);
+  return 0;
+}
+
 #endif
 
 #ifdef __WATCOMC__ /* "dosdate_t" instead of Borland style "date" ... */
@@ -507,8 +539,6 @@ void copy_file(const char *src_filename,
   unsigned int buffersize;
   int readsize,
       fileattrib;
-  struct ftime filetime;
-
 
   /* open source file */
   src_file = fopen(src_filename, "rb");
@@ -553,13 +583,12 @@ void copy_file(const char *src_filename,
     readsize = fread(buffer, sizeof(char), buffersize, src_file);
   }
 
-  /* copy file timestamp */
-  getftime(fileno(src_file), &filetime);
-  setftime(fileno(dest_file), &filetime);
-
   /* close files */
   fclose(src_file);
   fclose(dest_file);
+  
+  /* update timestamp after completing copy to ensure OS actually sets to original date and not current time */
+  os_setftime(src_filename, dest_filename);
 
   /* copy file attributes */
   fileattrib = _chmod(src_filename, 0);
