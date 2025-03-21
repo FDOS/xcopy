@@ -403,7 +403,7 @@ int main(int argc, const char **argv) {
 /* SUB-PROGRAMS                                                            */
 /*-------------------------------------------------------------------------*/
 void print_help(void) {
-  printf("XCOPY v1.8 - Copyright 2001-2003 by Rene Ableidinger (patches 2005: Eric Auer)\n");
+  printf("XCOPY v1.8a - Copyright 2001-2003 by Rene Ableidinger (patches 2005: Eric Auer)\n");
   	/* VERSION! */
   printf("%s\n\n", catgets(cat, 2, 1, "Copies files and directory trees."));
   printf("%s\n\n", catgets(cat, 2, 2, "XCOPY source [destination] [/switches]"));
@@ -603,15 +603,15 @@ void xcopy_files(const char *src_pathname,
                  const char *src_filename,
                  const char *dest_pathname,
                  const char *dest_filename) {
-  char filepattern[MAXPATH],
-       src_path_filename[MAXPATH],
-       dest_path_filename[MAXPATH],
-       tmp_filename[MAXFILE + MAXEXT],
-       tmp_pathname[MAXPATH];
+  char src_path_filename[MAXPATH],
+       dest_path_filename[MAXPATH];
   struct ffblk fileblock;
   int fileattrib,
       done;
-
+  /* WARNING these path values are overwritten on recursive calls */
+  static char filepattern[MAXPATH],
+       tmp_filename[MAXFILE + MAXEXT],
+       tmp_pathname[MAXPATH];
 
   if (switch_emptydir ||
       switch_subdir ||
@@ -624,6 +624,7 @@ void xcopy_files(const char *src_pathname,
     strmcpy(filepattern, src_pathname, sizeof(filepattern));
     strmcat(filepattern, "*.*", sizeof(filepattern));
     done = findfirst(filepattern, &fileblock, FA_DIREC);
+
     while (!done) {
       if ((fileblock.ff_attrib & FA_DIREC) != 0 &&
           strcmp(fileblock.ff_name, ".") != 0 &&
