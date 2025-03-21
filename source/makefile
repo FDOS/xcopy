@@ -32,7 +32,7 @@ RM=del
 # -k# set stack size, default is 2048 bytes (2KB) but just under 4KB is needed
 # Note: we default to Watcom unless Borland MAKE is used
 CC=wcl
-CFLAGS=-oas -bt=DOS -zp1 -ms -0 -wx -we -zq -fm -k8192 -fe=$*
+CFLAGS=-oas -bt=DOS -zp1 -ms -0 -wx -we -zq -fm -k12288 -fe=$*
 # needed for wmake if phony target
 PHONY=.SYMBOLIC
 

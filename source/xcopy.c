@@ -105,6 +105,14 @@ long file_counter = 0;
 int file_found = 0;
 
 
+/*  these are only used by xcopy_files, built up as recurse deeper into
+    into subdirectory to help avoid overflowing stack with each 
+    recursive call */
+char new_src_pathname[MAXPATH];
+char new_dest_pathname[MAXPATH];
+
+
+
 /*-------------------------------------------------------------------------*/
 /* PROTOTYPES                                                              */
 /*-------------------------------------------------------------------------*/
@@ -377,6 +385,8 @@ int main(int argc, const char **argv) {
     fflush(stdin);
   }
 
+  strmcpy(new_src_pathname, src_pathname, sizeof(new_src_pathname));
+  strmcpy(new_dest_pathname, dest_pathname, sizeof(new_dest_pathname));
   xcopy_files(src_pathname, src_filename, dest_pathname, dest_filename);
   if (!file_found) {
     printf("%s - %s\n",catgets(cat, 1, 18, "File not found"), src_filename);
@@ -594,8 +604,6 @@ void xcopy_files(const char *src_pathname,
                  const char *dest_pathname,
                  const char *dest_filename) {
   char filepattern[MAXPATH],
-       new_src_pathname[MAXPATH],
-       new_dest_pathname[MAXPATH],
        src_path_filename[MAXPATH],
        dest_path_filename[MAXPATH],
        tmp_filename[MAXFILE + MAXEXT],
@@ -608,7 +616,11 @@ void xcopy_files(const char *src_pathname,
   if (switch_emptydir ||
       switch_subdir ||
       switch_tree) {
+    /* store current path in static variable, append path to it and revert back after copy */
+    char *end_new_src_pathname = new_src_pathname + strlen(new_src_pathname);
+    char *end_new_dest_pathname = new_dest_pathname + strlen(new_dest_pathname);
     /* copy files in subdirectories too */
+    
     strmcpy(filepattern, src_pathname, sizeof(filepattern));
     strmcat(filepattern, "*.*", sizeof(filepattern));
     done = findfirst(filepattern, &fileblock, FA_DIREC);
@@ -617,17 +629,21 @@ void xcopy_files(const char *src_pathname,
           strcmp(fileblock.ff_name, ".") != 0 &&
           strcmp(fileblock.ff_name, "..") != 0) {
         /* build source pathname */
-        strmcpy(new_src_pathname, src_pathname, sizeof(new_src_pathname));
-        strmcat(new_src_pathname, fileblock.ff_name, sizeof(new_src_pathname));
-        strmcat(new_src_pathname, DIR_SEPARATOR, sizeof(new_src_pathname));
+        /*strmcpy(new_src_pathname, src_pathname, sizeof(new_src_pathname));*/
+        strmcat(end_new_src_pathname, fileblock.ff_name, sizeof(new_src_pathname));
+        strmcat(end_new_src_pathname, DIR_SEPARATOR, sizeof(new_src_pathname));
 
         /* build destination pathname */
-        strmcpy(new_dest_pathname, dest_pathname, sizeof(new_dest_pathname));
-        strmcat(new_dest_pathname, fileblock.ff_name, sizeof(new_dest_pathname));
-        strmcat(new_dest_pathname, DIR_SEPARATOR, sizeof(new_dest_pathname));
+        /*strmcpy(new_dest_pathname, dest_pathname, sizeof(new_dest_pathname));*/
+        strmcat(end_new_dest_pathname, fileblock.ff_name, sizeof(new_dest_pathname));
+        strmcat(end_new_dest_pathname, DIR_SEPARATOR, sizeof(new_dest_pathname));
 
         xcopy_files(new_src_pathname, src_filename,
                     new_dest_pathname, dest_filename);
+        
+
+        *end_new_src_pathname = '\0';
+        *end_new_dest_pathname = '\0';
       }
 
       done = findnext(&fileblock);
