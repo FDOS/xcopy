@@ -52,3 +52,7 @@ version 1.8 (2025-03-21)
 version 1.8a (2025-03-21)
 ------------------------
 - additional reduction in stack usage to further reduce stack overflowing errors
+
+version 1.8b (2025-03-21)
+------------------------
+- bugfix - listmode /L option should not create directory structure, only simulate
