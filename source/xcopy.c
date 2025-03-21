@@ -403,7 +403,7 @@ int main(int argc, const char **argv) {
 /* SUB-PROGRAMS                                                            */
 /*-------------------------------------------------------------------------*/
 void print_help(void) {
-  printf("XCOPY v1.8a - Copyright 2001-2003 by Rene Ableidinger (patches 2005: Eric Auer)\n");
+  printf("XCOPY v1.8b - Copyright 2001-2003 by Rene Ableidinger (patches 2005: Eric Auer)\n");
   	/* VERSION! */
   printf("%s\n\n", catgets(cat, 2, 1, "Copies files and directory trees."));
   printf("%s\n\n", catgets(cat, 2, 2, "XCOPY source [destination] [/switches]"));
@@ -668,7 +668,7 @@ void xcopy_files(const char *src_pathname,
 
   /* check if destination directory must be created */
   if ((!done || switch_emptydir) &&
-      !dir_exists(dest_pathname)) {
+      !dir_exists(dest_pathname) && !switch_listmode) {
     strmcpy(tmp_pathname, dest_pathname, sizeof(tmp_pathname));
     if (make_dir(tmp_pathname) != 0) {
       printf("%s %s\n", catgets(cat, 1, 20, "Unable to create directory"), tmp_pathname);
