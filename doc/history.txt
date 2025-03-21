@@ -44,3 +44,7 @@ version 1.7 (2024-08-13)
 - fix sourceforge bug# 178, allow switches specified without spaces between them
 - fix /D:<date> to work skip older files than date even if no file exists at destination
 
+version 1.8 (2025-03-21)
+------------------------
+- rework recursive xcopy to not use as much stack space (can be further reduced)
+- also increase stack size when built with Open Watcom to limit stack overflowing errors

@@ -1,4 +1,4 @@
-FreeDOS XCOPY command version 1.7
+FreeDOS XCOPY command version 1.8
 ---------------------------------
 Copies files and directory trees.
 
