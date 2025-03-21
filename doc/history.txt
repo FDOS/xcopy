@@ -48,3 +48,7 @@ version 1.8 (2025-03-21)
 ------------------------
 - rework recursive xcopy to not use as much stack space (can be further reduced)
 - also increase stack size when built with Open Watcom to limit stack overflowing errors
+
+version 1.8a (2025-03-21)
+------------------------
+- additional reduction in stack usage to further reduce stack overflowing errors
