@@ -255,6 +255,75 @@ void getdfree(unsigned char drive, struct dfree *dtable)
 }
 #endif
 
+/*-------------------------------------------------------------------------*/
+/* Gets the free cluster count and clustersize in bytes of disk            */
+/* drive 1=A,2=B,3=C,... error can be NULL if don't care                   */
+/*-------------------------------------------------------------------------*/
+void getdiskfreeclusters(unsigned drive, unsigned long *clustersize, unsigned long *free_clusters)
+{
+  static char rootname[] = "C:\\";
+  static union REGS r;
+  static struct SREGS s;
+  static struct {
+  	unsigned short whatever;
+  	unsigned short version;
+  	unsigned long  sectors_per_cluster; 
+  	unsigned long  bytes_per_sector;
+  	unsigned long  free_clusters;
+  	unsigned long  total_clusters;
+  	unsigned long  available_physical_sectors;
+  	unsigned long  total_physical_sectors;
+  	unsigned long  free_allocation_units; 
+  	unsigned long  total_allocation_units; 
+  	unsigned char  reserved[8];
+  } FAT32_Free_Space;
+
+  if (!drive) _dos_getdrive(&drive);  /* use current drive */
+  /* Note: RBIL carry clear and al==0 also means unimplemented 
+     alternately carry set and ax==undefined (usually unchanged) for unimplemented
+     ecm: RBIL is wrong, CF unchanged al=0 is the typical error return.
+     EDR-DOS returns NC ax=0 so checking for al!=0 here was wrong.
+  */
+  rootname[0] = 'A' + drive - 1;
+  /* printf("Looking at drive [%s]\n", rootname); */
+  r.w.cflag = 1;	/* CY before 21.73 calls! */
+  r.w.ax = 0x7303;
+  s.ds = FP_SEG(rootname);
+  r.w.dx = FP_OFF(rootname);
+  s.es = FP_SEG(&FAT32_Free_Space);
+  r.w.di = FP_OFF(&FAT32_Free_Space);
+  r.w.cx = sizeof(FAT32_Free_Space);
+  intdosx( &r, &r, &s );
+
+  /* see if call supported, if not then fallback to older get disk free API call */  
+  if (!(r.w.cflag & 0x01) && (r.h.al))
+  {
+    /* calculate free space, but handle some overflow cases (or switch to 64bit values) */ 
+    if (clustersize != NULL) *clustersize = FAT32_Free_Space.sectors_per_cluster * FAT32_Free_Space.bytes_per_sector;
+    if (free_clusters != NULL) *free_clusters = FAT32_Free_Space.free_clusters;
+
+    /* total free is cluster size * # of free clusters */
+    #if 0
+    if (clustersize)
+    {
+      /* if (MAX_ULONG / operand1) < operand2 then will overflow (operand1 * operand2 > MAX_ULONG */
+      if ((4294967295ul / clustersize) < FAT32_Free_Space.free_clusters) {
+          freesize = (unsigned long)-1; /* max size */
+      } else {
+          freesize = clustersize * FAT32_Free_Space.free_clusters;
+      }
+    }
+    #endif
+  }
+  else /* ((r.w.cflag & 0x01) || (!r.h.al)) */
+  {
+    static struct dfree disktable;
+    getdfree(drive, &disktable);
+    if (clustersize != NULL) *clustersize = (unsigned long)  disktable.df_bsec * disktable.df_sclus;
+    if (free_clusters != NULL) *free_clusters = disktable.df_avail;
+  }
+}
+
 
 /*-------------------------------------------------------------------------*/
 /* Works like function strcpy() but stops copying characters into          */

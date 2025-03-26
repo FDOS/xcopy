@@ -715,14 +715,14 @@ void xcopy_files(const char *src_pathname,
 /*-------------------------------------------------------------------------*/
 void xcopy_file(const char *src_filename,
                 const char *dest_filename) {
+  static char msg_prompt[256];
+  static struct stat src_statbuf;
+  static struct stat dest_statbuf;
+  static unsigned long cluster_size; /* in bytes */
+  static unsigned long free_clusters; /* count of clusters */
   int dest_file_exists;
   int fileattrib;
-  struct stat src_statbuf;
-  struct stat dest_statbuf;
-  struct dfree disktable;
-  unsigned long cluster_size; /* in bytes */
   char ch;
-  char msg_prompt[255];
 
 
   if (switch_prompt) {
@@ -761,9 +761,7 @@ void xcopy_file(const char *src_filename,
   dest_file_exists = !stat((char *)dest_filename, &dest_statbuf);
 
   /* get amount of free disk space in destination drive (in clusters not bytes) */
-  getdfree(dest_drive, &disktable);
-  cluster_size = (unsigned long)disktable.df_bsec * disktable.df_sclus;
-
+  getdiskfreeclusters(dest_drive, &cluster_size, &free_clusters);
 
   /* only copy files newer than requested date */
   /* -1 =if exists then only copy newer, 0=copy regardless of date, >0 date to compare if newer */
@@ -819,7 +817,7 @@ void xcopy_file(const char *src_filename,
 	         otherwise need to ensure enough free clusters to support additional file size (additional clusters).
 	 */
     if ( (src_statbuf.st_size > dest_statbuf.st_size) &&
-         ((((src_statbuf.st_size - dest_statbuf.st_size) + (cluster_size-1))/cluster_size) > disktable.df_avail) ) {
+         ((((src_statbuf.st_size - dest_statbuf.st_size) + (cluster_size-1))/cluster_size) > free_clusters) ) {
       printf("%s - %s\n", catgets(cat, 1, 23, "Insufficient disk space in destination path"), dest_filename);
       catclose(cat);
       exit(39);
@@ -855,7 +853,7 @@ void xcopy_file(const char *src_filename,
 	   but we do this to avoid overflow of 32bit integers if freespace > 4GB
 	 */
 	
-    if (((src_statbuf.st_size + (cluster_size-1))/cluster_size) > disktable.df_avail) {
+    if (((src_statbuf.st_size + (cluster_size-1))/cluster_size) > free_clusters) {
       printf("%s - %s\n", catgets(cat, 1, 25, "Insufficient disk space in destination path"), dest_filename);
       catclose(cat);
       exit(39);
