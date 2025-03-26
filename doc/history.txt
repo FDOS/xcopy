@@ -56,3 +56,8 @@ version 1.8a (2025-03-21)
 version 1.8b (2025-03-21)
 ------------------------
 - bugfix - listmode /L option should not create directory structure, only simulate
+
+version 1.9 (2025-03-26)
+------------------------
+- bugfix - better check for free space for > 2GB files, use FAT32 enabled API if available
+
