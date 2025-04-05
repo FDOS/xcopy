@@ -296,7 +296,14 @@ void getdiskfreeclusters(unsigned drive, unsigned long *clustersize, unsigned lo
   intdosx( &r, &r, &s );
 
   /* see if call supported, if not then fallback to older get disk free API call */  
-  if (!(r.w.cflag & 0x01) && (r.h.al))
+  /* Note: from RBIL returning AL=0 (with carry unchanged/clear) means unimplemented,
+     in such cases AH is unchanged, so will AH will still by 0x73, i.e. returning AX=0x7300 
+     EDR kernel returns with AX=0 if successful so error must check AX=7300 instead of just AL for 0
+     FreeDOS kernel returns with AX unchanged, i.e. 0x7303 on success
+     If returns carry set then AX is undefined, but an error.
+     (carry OR (AX == 0x7300)) indicates error, so we check for NOT (carry OR (AX == 0x7300))
+  */
+  if (!(r.w.cflag & 0x01) && (r.w.ax != 0x7300)) /* call available and successfully returned */
   {
     /* calculate free space, but handle some overflow cases (or switch to 64bit values) */ 
     if (clustersize != NULL) *clustersize = FAT32_Free_Space.sectors_per_cluster * FAT32_Free_Space.bytes_per_sector;
