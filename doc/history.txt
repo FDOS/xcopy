@@ -61,3 +61,6 @@ version 1.9 (2025-03-26)
 ------------------------
 - bugfix - better check for free space for > 2GB files, use FAT32 enabled API if available
 
+version 1.9a (2025-04-07)
+-------------------------
+- bugfix - fix free space check to succeed on EDR based DOS kernels

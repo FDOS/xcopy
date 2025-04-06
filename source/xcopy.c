@@ -403,7 +403,7 @@ int main(int argc, const char **argv) {
 /* SUB-PROGRAMS                                                            */
 /*-------------------------------------------------------------------------*/
 void print_help(void) {
-  printf("XCOPY v1.9 - Copyright 2001-2003 by Rene Ableidinger (patches 2005: Eric Auer)\n");
+  printf("XCOPY v1.9a - Copyright 2001-2003 by Rene Ableidinger (patches 2005: Eric Auer)\n");
   	/* VERSION! */
   printf("%s\n\n", catgets(cat, 2, 1, "Copies files and directory trees."));
   printf("%s\n\n", catgets(cat, 2, 2, "XCOPY source [destination] [/switches]"));
