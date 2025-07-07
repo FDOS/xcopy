@@ -438,7 +438,7 @@ void print_help(void) {
   printf("%s\n", catgets(cat, 2, 25, "  /T           Creates directory tree without copying files. Empty directories"));
   printf("%s\n", catgets(cat, 2, 26, "               will not be copied. To copy them add switch /E."));
   printf("%s\n", catgets(cat, 2, 27, "  /V           Verifies each new file."));
-  printf("%s\n", catgets(cat, 2, 28, "  /W           Waits for a keypress before beginning."));
+  printf("%s\n", catgets(cat, 2, 28, "  /W           Waits for a key press before beginning."));
   printf("%s\n", catgets(cat, 2, 29, "  /Y           Suppresses prompting to confirm you want to overwrite an"));
   printf("%s\n", catgets(cat, 2, 30, "               existing destination file and overwrites these files."));
   printf("%s\n", catgets(cat, 2, 31, "  /-Y          Causes prompting to confirm you want to overwrite an existing"));

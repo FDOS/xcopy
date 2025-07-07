@@ -29,7 +29,7 @@ XCOPY source [destination] [/switches]
   /T           Creates directory tree without copying files. Empty directories
                will not be copied. To copy them add switch /E.
   /V           Verifies each new file.
-  /W           Waits for a keypress before beginning.
+  /W           Waits for a key press before beginning.
   /Y           Suppresses prompting to confirm you want to overwrite an
                existing destination file and overwrites these files.
   /-Y          Causes prompting to confirm you want to overwrite an existing
