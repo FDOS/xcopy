@@ -64,3 +64,8 @@ version 1.9 (2025-03-26)
 version 1.9a (2025-04-07)
 -------------------------
 - bugfix - fix free space check to succeed on EDR based DOS kernels
+
+next version (unreleased)
+-------------------------
+- /D:date now follows the date format of the current country setting
+  (DOS INT 21h AX=3800h) instead of always M/D/Y (GitHub issue# 15)

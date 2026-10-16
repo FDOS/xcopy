@@ -383,7 +383,48 @@ char *strmcat(char *dest,
 
 
 /*-------------------------------------------------------------------------*/
-/* Converts an US date string ("M/D/Y" or "M-D-Y") into a date structure.  */
+/* Returns the date order of the current country setting (DOS 3+, INT 21h  */
+/* AX=3800h, word at offset 0 of the country info):                        */
+/*  0   month day year (USA)                                               */
+/*  1   day month year (Europe)                                            */
+/*  2   year month day (Japan)                                             */
+/* The country's date separator is stored in *sep. If the call fails, the  */
+/* US order and '/' are returned, as before.                               */
+/*-------------------------------------------------------------------------*/
+int getdateorder(char *sep) {
+  *sep = '/';
+#ifdef __DJGPP__
+  /* not implemented for DJGPP builds, keep the US order */
+  return 0;
+#else
+  {
+    union REGS r;
+    struct SREGS s;
+    unsigned char info[34];  /* DOS 3+ country info block */
+    unsigned char far *p = (unsigned char far *)info;
+
+    segread(&s);
+    s.ds = FP_SEG(p);
+    r.x.dx = FP_OFF(p);
+    r.x.ax = 0x3800;         /* get current country info */
+    intdosx(&r, &r, &s);
+    if (r.x.cflag || info[0] > 2 || info[1] != 0) {
+      return 0;
+    }
+    if (info[11] != '\0') {
+      *sep = (char)info[11];
+    }
+    return info[0];
+  }
+#endif
+}
+
+
+/*-------------------------------------------------------------------------*/
+/* Converts a date string into a date structure. The order of day, month  */
+/* and year follows the current country setting (see getdateorder), e.g.   */
+/* "M/D/Y" for USA, "D.M.Y" for Germany or "Y-M-D" for Poland. The parts   */
+/* may be separated by '/', '-', '.' or the country's date separator.      */
 /* A two digit year may be specified.                                      */
 /*                                                                         */
 /* return value:                                                           */
@@ -392,23 +433,38 @@ char *strmcat(char *dest,
 /*-------------------------------------------------------------------------*/
 int strtodate(const char *string,
               THEDATE *dt) {
-  char *ptr;
+  const char *ptr = string;
+  char sep;
+  int order, i, n[3];
 
-  ptr = (char *)string;
-  if(isdigit(*ptr)) {
-    dt->da_mon = atoi(ptr);
-    while (isdigit(*ptr)) ++ptr;
-    if ((*ptr != '/') && (*ptr != '-')) {
+  order = getdateorder(&sep);
+  for (i = 0; i < 3; i++) {
+    if (!isdigit(*ptr)) {
       return -1;
     }
-    ptr++;
-    dt->da_day = atoi(ptr);
+    n[i] = atoi(ptr);
     while (isdigit(*ptr)) ++ptr;
-    if((*ptr != '/') && (*ptr != '-')) {
-      return -1;
+    if (i < 2) {
+      if ((*ptr != '/') && (*ptr != '-') && (*ptr != '.') && (*ptr != sep)) {
+        return -1;
+      }
+      ptr++;
     }
-    ptr++;
-    dt->da_year = atoi(ptr);
+  }
+  if (*ptr != '\0') {
+    return -1;
+  }
+
+  switch (order) {
+    case 1:  /* day month year */
+      dt->da_day = n[0]; dt->da_mon = n[1]; dt->da_year = n[2];
+      break;
+    case 2:  /* year month day */
+      dt->da_year = n[0]; dt->da_mon = n[1]; dt->da_day = n[2];
+      break;
+    default: /* month day year */
+      dt->da_mon = n[0]; dt->da_day = n[1]; dt->da_year = n[2];
+      break;
   }
 
   if (dt->da_year < 80) {

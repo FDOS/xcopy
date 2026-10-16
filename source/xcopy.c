@@ -412,7 +412,7 @@ void print_help(void) {
   printf("%s\n", catgets(cat, 2, 5, "  /A           Copies only files with the archive attribute set and doesn't"));
   printf("%s\n", catgets(cat, 2, 6, "               change the attribute."));
   printf("%s\n", catgets(cat, 2, 7, "  /C           Continues copying even if errors occur."));
-  printf("%s\n", catgets(cat, 2, 8, "  /D[:M/D/Y]   Copies only files which have been changed on or after the"));
+  printf("%s\n", catgets(cat, 2, 8, "  /D[:date]    Copies only files which have been changed on or after the"));
   printf("%s\n", catgets(cat, 2, 9, "               specified date. When no date is specified, only files which are"));
   printf("%s\n", catgets(cat, 2, 10, "               newer than existing destination files will be copied."));
   printf("%s\n", catgets(cat, 2, 11, "  /E           Copies any subdirectories, even if empty."));

@@ -21,10 +21,13 @@ Copies files and directory trees.
   <b>/C</b>
   Continues copying even if errors occur.
 
-  <b>/D[:M/D/Y]</b>
+  <b>/D[:date]</b>
   Copies only files which have been changed on or after the
   specified date. When no date is specified, only files which are
   newer than existing destination files will be copied.
+  The date is written in the format of the current country setting
+  (COUNTRY= in CONFIG.SYS), e.g. 10/16/2026 (USA), 16.10.2026 (Germany)
+  or 2026-10-16 (Poland).
 
   <b>/E</b>
   Copies any subdirectories, even if empty.
