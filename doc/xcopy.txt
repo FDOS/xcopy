@@ -9,9 +9,12 @@ XCOPY source [destination] [/switches]
   /A           Copies only files with the archive attribute set and doesn't
                change the attribute.
   /C           Continues copying even if errors occur.
-  /D[:M/D/Y]   Copies only files which have been changed on or after the
+  /D[:date]    Copies only files which have been changed on or after the
                specified date. When no date is specified, only files which are
                newer than existing destination files will be copied.
+               The date is written in the format of the current country
+               setting (COUNTRY= in CONFIG.SYS), e.g. 10/16/2026 (USA),
+               16.10.2026 (Germany) or 2026-10-16 (Poland).
   /E           Copies any subdirectories, even if empty.
   /F           Display full source and destination name.
   /H           Copies hidden and system files as well as unprotected files.
